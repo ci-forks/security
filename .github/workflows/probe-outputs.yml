@@ -1,0 +1,20 @@
+name: probe outputs
+on:
+  workflow_dispatch:
+jobs:
+  producer:
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.mark.outputs.published }}
+    steps:
+      - id: mark
+        run: echo "published=true" >> "$GITHUB_OUTPUT"
+      - run: |
+          echo "now failing on purpose, after the output was set"
+          exit 1
+  consumer:
+    needs: producer
+    if: ${{ !cancelled() && needs.producer.outputs.published == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CONSUMER RAN, output survived a failed job"
